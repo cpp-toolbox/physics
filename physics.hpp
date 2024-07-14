@@ -6,8 +6,8 @@
 #endif
 
 #include "jolt_implementation.hpp"
-#include "../../model_loading/model_loading.hpp"
 #include "Jolt/Physics/Character/CharacterVirtual.h"
+#include "sbpt_generated_includes.hpp"
 
 class Physics {
   public:

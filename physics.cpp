@@ -143,7 +143,7 @@ void Physics::create_character(uint64_t client_id) {
                                                                        // lower sphere of the capsule
 
     JPH::Ref<JPH::CharacterVirtual> character =
-        new JPH::CharacterVirtual(settings, JPH::RVec3(0.0f, 10.0f, 0.0f), JPH::Quat::sIdentity(), &physics_system);
+        new JPH::CharacterVirtual(settings, JPH::RVec3(0.0f, 0.0f, 0.0f), JPH::Quat::sIdentity(), &physics_system);
 
     client_id_to_physics_character[client_id] = character;
 }

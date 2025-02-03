@@ -1,13 +1,23 @@
-#ifndef PHYSICS_H
-#define PHYSICS_H
+#ifndef PHYSICS_HPP
+#define PHYSICS_HPP
 
-#ifndef JPH_DEBUG_RENDERER
-#define JPH_DEBUG_RENDERER
-#endif
+/*#ifndef JPH_DEBUG_RENDERER*/
+/*#define JPH_DEBUG_RENDERER*/
+/*#endif*/
 
 #include "jolt_implementation.hpp"
+/*#include "../../graphics/graphics.hpp"*/
 #include "Jolt/Physics/Character/CharacterVirtual.h"
+#include "Jolt/Physics/StateRecorderImpl.h"
+/*#include "../../networked_input_snapshot/networked_input_snapshot.hpp"*/
+/*#include "../../expiring_data_container/expiring_data_container.hpp"*/
+/*#include "../../ring_buffer/ring_buffer.hpp"*/
 #include "sbpt_generated_includes.hpp"
+#include <chrono>
+
+struct PhysicsFrame {
+    JPH::StateRecorderImpl &physics_state;
+};
 
 class Physics {
   public:
@@ -15,17 +25,26 @@ class Physics {
     ~Physics();
 
     JPH::PhysicsSystem physics_system;
+
+    // RingBuffer<PhysicsFrame> physics_frames;
+
+    void update_characters_only(float delta_time);
+    void update_specific_character_by_id(float delta_time, uint64_t id);
+    void update_specific_character(float delta_time, JPH::Ref<JPH::CharacterVirtual> character);
     void update(float delta_time);
 
     JPH::BodyID sphere_id; // should be removed in a real program
-    JPH::Ref<JPH::CharacterVirtual> character;
+    std::unordered_map<uint64_t, JPH::Ref<JPH::CharacterVirtual>> client_id_to_physics_character;
+    void refresh_contacts(JPH::Ref<JPH::CharacterVirtual>);
+    // JPH::Ref<JPH::CharacterVirtual> character;
 
-    void load_model_into_physics_world(Model *model);
+    void load_model_into_physics_world(std::vector<IndexedVertexPositions> &ivps);
+    void create_character(uint64_t client_id);
+    void delete_character(uint64_t client_id);
 
   private:
     void initialize_engine();
     void initialize_world_objects();
-    void create_character();
     void clean_up_world();
 
     const unsigned int cMaxBodies = 1024;
@@ -49,4 +68,4 @@ class Physics {
     std::vector<JPH::BodyID> created_body_ids;
 };
 
-#endif
+#endif // PHYSICS_HPP

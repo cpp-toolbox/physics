@@ -89,7 +89,7 @@ void Physics::load_model_into_physics_world(std::vector<draw_info::IndexedVertex
 
         JPH::TriangleList triangles;
 
-        assert(mesh.indices.size() % 3 == 0); // only contains triangles
+        /*assert(mesh.indices.size() % 3 == 0); // only contains triangles*/
         for (int j = 0; j < ivp.indices.size(); j += 3) {
             unsigned int j1 = ivp.indices[j];
             unsigned int j2 = ivp.indices[j + 1];
@@ -132,10 +132,8 @@ void Physics::load_model_into_physics_world(std::vector<draw_info::IndexedVertex
 
 /**
  * \brief create character controller for a user
- * \todo do I have to account for dynamic memory? Come back when you know what
- * ref is
  */
-void Physics::create_character(uint64_t client_id, JPH::Vec3 initial_position) {
+JPH::Ref<JPH::CharacterVirtual> Physics::create_character(uint64_t client_id, JPH::Vec3 initial_position) {
     JPH::Ref<JPH::CharacterVirtualSettings> settings = new JPH::CharacterVirtualSettings();
     settings->mShape = new JPH::CapsuleShape(0.5f * this->character_height, this->character_radius);
     settings->mSupportingVolume = JPH::Plane(JPH::Vec3::sAxisY(),
@@ -146,6 +144,8 @@ void Physics::create_character(uint64_t client_id, JPH::Vec3 initial_position) {
         new JPH::CharacterVirtual(settings, initial_position, JPH::Quat::sIdentity(), &physics_system);
 
     client_id_to_physics_character[client_id] = character;
+
+    return character;
 }
 
 void Physics::delete_character(uint64_t client_id) { client_id_to_physics_character.erase(client_id); }

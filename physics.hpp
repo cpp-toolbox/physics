@@ -56,7 +56,7 @@ class Physics {
     const int cCollisionSteps = 1;
 
     const float character_height = 2.0f;
-    const float character_radius = 0.5f;
+    const float character_radius = 1.0f;
 
     JPH::TempAllocatorImpl *temp_allocator;
     JPH::JobSystemThreadPool *job_system;

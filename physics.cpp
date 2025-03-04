@@ -50,7 +50,7 @@ void Physics::initialize_engine() {
 
 void Physics::initialize_world_objects() {
 
-    physics_system.SetGravity(JPH::Vec3(0, -30, 0));
+    physics_system.SetGravity(JPH::Vec3(0, -40, 0));
 
     /*JPH::BodyInterface &body_interface = physics_system.GetBodyInterface();*/
 

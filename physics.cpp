@@ -136,6 +136,7 @@ void Physics::load_model_into_physics_world(std::vector<draw_info::IndexedVertex
 JPH::Ref<JPH::CharacterVirtual> Physics::create_character(uint64_t client_id, JPH::Vec3 initial_position) {
     JPH::Ref<JPH::CharacterVirtualSettings> settings = new JPH::CharacterVirtualSettings();
     settings->mShape = new JPH::CapsuleShape(0.5f * this->character_height, this->character_radius);
+    settings->mInnerBodyShape = new JPH::CapsuleShape(0.5f * this->character_height, this->character_radius);
     settings->mSupportingVolume = JPH::Plane(JPH::Vec3::sAxisY(),
                                              -this->character_radius); // Accept contacts that touch the
                                                                        // lower sphere of the capsule
@@ -154,7 +155,7 @@ void Physics::delete_character(uint64_t client_id) { client_id_to_physics_charac
  * \brief updates the objects part of this physics simulation
  */
 void Physics::update(float delta_time) {
-    this->update_characters_only(delta_time); // accounts for predicted inputs
+    // this->update_characters_only(delta_time); // accounts for predicted inputs
     physics_system.Update(delta_time, cCollisionSteps, temp_allocator, job_system);
     // JPH::StateRecorderImpl physics_state_after_update;
     // this->physics_state_history.push

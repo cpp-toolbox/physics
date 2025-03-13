@@ -44,6 +44,8 @@ class Physics {
                                                      JPH::Vec3 initial_position = JPH::Vec3(0, 0, 0));
     void delete_character(uint64_t client_id);
 
+    std::vector<JPH::BodyID> created_body_ids;
+
   private:
     void initialize_engine();
     void initialize_world_objects();
@@ -66,8 +68,6 @@ class Physics {
     BPLayerInterfaceImpl broad_phase_layer_interface;
     ObjectVsBroadPhaseLayerFilterImpl object_vs_broadphase_layer_filter;
     ObjectLayerPairFilterImpl object_vs_object_layer_filter;
-
-    std::vector<JPH::BodyID> created_body_ids;
 };
 
 #endif // PHYSICS_HPP

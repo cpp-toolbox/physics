@@ -38,7 +38,7 @@ class Physics {
     void refresh_contacts(JPH::Ref<JPH::CharacterVirtual>);
     // JPH::Ref<JPH::CharacterVirtual> character;
 
-    void load_model_into_physics_world(std::vector<draw_info::IndexedVertexPositions> &ivps);
+    void load_model_into_physics_world(const std::vector<draw_info::IndexedVertexPositions> &ivps);
 
     JPH::Ref<JPH::CharacterVirtual> create_character(uint64_t client_id,
                                                      JPH::Vec3 initial_position = JPH::Vec3(0, 0, 0));

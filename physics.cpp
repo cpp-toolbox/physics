@@ -79,7 +79,7 @@ void Physics::initialize_world_objects() {
  * \brief For every mesh in this model, we create a physics object that
  * represents the mesh
  */
-void Physics::load_model_into_physics_world(std::vector<draw_info::IndexedVertexPositions> &ivps) {
+void Physics::load_model_into_physics_world(const std::vector<draw_info::IndexedVertexPositions> &ivps) {
 
     JPH::BodyInterface &body_interface = physics_system.GetBodyInterface();
 

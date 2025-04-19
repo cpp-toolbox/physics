@@ -6,6 +6,7 @@
 /*#include "../../math/conversions.hpp"*/
 #include "Jolt/Physics/Character/CharacterVirtual.h"
 #include "Jolt/Physics/Collision/Shape/CapsuleShape.h"
+#include "Jolt/Physics/Collision/Shape/CylinderShape.h"
 #include "Jolt/Physics/Collision/Shape/ConvexHullShape.h"
 #include "Jolt/Physics/Collision/Shape/MeshShape.h"
 #include "Jolt/Physics/StateRecorder.h"
@@ -134,12 +135,24 @@ void Physics::load_model_into_physics_world(const std::vector<draw_info::Indexed
  * \brief create character controller for a user
  */
 JPH::Ref<JPH::CharacterVirtual> Physics::create_character(uint64_t client_id, JPH::Vec3 initial_position) {
+
     JPH::Ref<JPH::CharacterVirtualSettings> settings = new JPH::CharacterVirtualSettings();
-    settings->mShape = new JPH::CapsuleShape(0.5f * this->character_height, this->character_radius);
-    settings->mInnerBodyShape = new JPH::CapsuleShape(0.5f * this->character_height, this->character_radius);
+
+    const float character_half_height = 0.5f * this->character_height_standing;
+
+    settings->mShape = new JPH::CylinderShape(character_half_height, this->character_radius);
+    // settings->mInnerBodyShape = new JPH::CapsuleShape(character_half_height, this->character_radius);
+
+    // n = (0, 1, 0) so if we use that as the normal, then (x, y, z) * n = y, thus the equation is of the form
+    // X . n + c = 0, so if we make c = - radius, that would only accept contacts which are on the bottom semisphere
+    // because X.n - radius = 0 <=> y - radius = 0 so if y = radius then its on the sphere, also this only works if you
+    // translated your shape up so that the origin is on the bottom of the character, and we're not going to do that.
+    //
+    // since we're doing a cylinder we do it this way, we only allow contacts if they are on the very bottom of the
+    // cylinder.
     settings->mSupportingVolume = JPH::Plane(JPH::Vec3::sAxisY(),
-                                             -this->character_radius); // Accept contacts that touch the
-                                                                       // lower sphere of the capsule
+                                             +character_half_height - 0.01); // Accept contacts that touch the
+                                                                             // lower part of the cylinder
 
     JPH::Ref<JPH::CharacterVirtual> character =
         new JPH::CharacterVirtual(settings, initial_position, JPH::Quat::sIdentity(), &physics_system);

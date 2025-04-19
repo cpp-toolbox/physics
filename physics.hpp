@@ -46,6 +46,34 @@ class Physics {
 
     std::vector<JPH::BodyID> created_body_ids;
 
+    // character creation data [[
+    static constexpr float inner_shape_fraction = 0.9f;
+    // based on actual average human height in meters
+    // note that half of this is 0.875
+    const float character_height_standing = 1.75f;
+
+    const float character_height_crouching = 1.f;
+
+    // Male: ~0.45 m,  Female: ~0.40 m , average diameter ≈ 0.425 m
+    const float character_radius = 0.425f;
+
+    // eye position derivation:
+    // we approximate the human body with a vertical cylinder:
+    // - total height of the cylinder: 1.75 meters
+    // - origin is at the center of the cylinder
+    //   → half-height = 1.75 / 2 = 0.875 meters
+    //
+    // average eye level in adults is approximately 1.10 meters from the bottom of the body.
+    // to compute the eye position relative to the center-origin:
+    //
+    //     eye_y = -half_height + eye_height_from_base
+    //           = -0.875 + 1.10
+    //           = +0.225 meters
+
+    const float eyes_height_from_center = 0.5;
+
+    // character creation data ]]
+
   private:
     void initialize_engine();
     void initialize_world_objects();
@@ -56,9 +84,6 @@ class Physics {
     const unsigned int cMaxBodyPairs = 1024;
     const unsigned int cMaxContactConstraints = 1024;
     const int cCollisionSteps = 1;
-
-    const float character_height = 2.0f;
-    const float character_radius = 1.0f;
 
     JPH::TempAllocatorImpl *temp_allocator;
     JPH::JobSystemThreadPool *job_system;

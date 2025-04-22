@@ -61,7 +61,8 @@ static bool AssertFailedImpl(const char *inExpression, const char *inMessage, co
 namespace Layers {
 static constexpr JPH::ObjectLayer NON_MOVING = 0;
 static constexpr JPH::ObjectLayer MOVING = 1;
-static constexpr JPH::ObjectLayer NUM_LAYERS = 2;
+static constexpr JPH::ObjectLayer PROJECTILE = 2;
+static constexpr JPH::ObjectLayer NUM_LAYERS = 3;
 }; // namespace Layers
 
 class ObjectLayerPairFilterImpl : public JPH::ObjectLayerPairFilter {
@@ -71,7 +72,9 @@ class ObjectLayerPairFilterImpl : public JPH::ObjectLayerPairFilter {
         case Layers::NON_MOVING:
             return inObject2 == Layers::MOVING; // Non moving only collides with moving
         case Layers::MOVING:
-            return true; // Moving collides with everything
+            return inObject2 != Layers::PROJECTILE; // Non moving only collides with moving
+        case Layers::PROJECTILE:
+            return inObject2 == Layers::NON_MOVING; // projectiles only explode on map
         default:
             JPH_ASSERT(false);
             return false;
@@ -87,7 +90,8 @@ class ObjectLayerPairFilterImpl : public JPH::ObjectLayerPairFilter {
 namespace JPH::BroadPhaseLayers {
 static constexpr JPH::BroadPhaseLayer NON_MOVING(0);
 static constexpr JPH::BroadPhaseLayer MOVING(1);
-static constexpr unsigned int NUM_LAYERS(2);
+static constexpr JPH::BroadPhaseLayer PROJECTILE(2);
+static constexpr unsigned int NUM_LAYERS(3);
 }; // namespace JPH::BroadPhaseLayers
 
 // JPH::BroadPhaseLayerInterface implementation
@@ -98,6 +102,7 @@ class BPLayerInterfaceImpl final : public JPH::BroadPhaseLayerInterface {
         // Create a mapping table from object to broad phase layer
         mObjectToBroadPhase[Layers::NON_MOVING] = JPH::BroadPhaseLayers::NON_MOVING;
         mObjectToBroadPhase[Layers::MOVING] = JPH::BroadPhaseLayers::MOVING;
+        mObjectToBroadPhase[Layers::PROJECTILE] = JPH::BroadPhaseLayers::MOVING;
     }
 
     virtual unsigned int GetNumBroadPhaseLayers() const override { return JPH::BroadPhaseLayers::NUM_LAYERS; }
@@ -134,7 +139,9 @@ class ObjectVsBroadPhaseLayerFilterImpl : public JPH::ObjectVsBroadPhaseLayerFil
         case Layers::NON_MOVING:
             return inLayer2 == JPH::BroadPhaseLayers::MOVING;
         case Layers::MOVING:
-            return true;
+            return inLayer2 != JPH::BroadPhaseLayers::PROJECTILE;
+        case Layers::PROJECTILE:
+            return inLayer2 == JPH::BroadPhaseLayers::NON_MOVING;
         default:
             JPH_ASSERT(false);
             return false;

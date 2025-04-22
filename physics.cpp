@@ -205,6 +205,7 @@ void Physics::update_specific_character(float delta_time, JPH::Ref<JPH::Characte
     // update_settings.mWalkStairsStepUp = character->GetUp() *
     // update_settings.mWalkStairsStepUp.Length();
     //
+    // TODO: think if gravity needs to be applied because we're already applyign it?
     character->ExtendedUpdate(delta_time, -character->GetUp() * physics_system.GetGravity().Length(), update_settings,
                               physics_system.GetDefaultBroadPhaseLayerFilter(Layers::MOVING),
                               physics_system.GetDefaultLayerFilter(Layers::MOVING), {}, {}, *temp_allocator);

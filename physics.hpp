@@ -30,7 +30,8 @@ class Physics {
 
     void update_characters_only(float delta_time);
     void update_specific_character_by_id(float delta_time, uint64_t id);
-    void update_specific_character(float delta_time, JPH::Ref<JPH::CharacterVirtual> character);
+    void update_specific_character(float delta_time, JPH::Ref<JPH::CharacterVirtual> character,
+                                   const JPH::BodyFilter &body_filter = JPH::BodyFilter());
     void update(float delta_time);
 
     JPH::BodyID sphere_id; // should be removed in a real program

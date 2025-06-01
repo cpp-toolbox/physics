@@ -76,11 +76,38 @@ void Physics::initialize_world_objects() {
     /*body_interface.SetLinearVelocity(ball->GetID(), JPH::Vec3(0.0f, -5.0f, 0.0f));*/
 }
 
+JPH::TriangleList ivp_to_triangle_list(const draw_info::IndexedVertexPositions &ivp) {
+
+    JPH::TriangleList triangles;
+
+    /*assert(mesh.indices.size() % 3 == 0); // only contains triangles*/
+    for (int j = 0; j < ivp.indices.size(); j += 3) {
+        unsigned int j1 = ivp.indices[j];
+        unsigned int j2 = ivp.indices[j + 1];
+        unsigned int j3 = ivp.indices[j + 2];
+
+        glm::vec3 temp_v1 = ivp.xyz_positions[j1];
+        JPH::Float3 v1 = JPH::Float3(temp_v1.x, temp_v1.y, temp_v1.z);
+
+        glm::vec3 temp_v2 = ivp.xyz_positions[j2];
+        JPH::Float3 v2 = JPH::Float3(temp_v2.x, temp_v2.y, temp_v2.z);
+
+        glm::vec3 temp_v3 = ivp.xyz_positions[j3];
+        JPH::Float3 v3 = JPH::Float3(temp_v3.x, temp_v3.y, temp_v3.z);
+
+        JPH::Triangle tri = JPH::Triangle(v1, v2, v3);
+
+        triangles.push_back(tri);
+    }
+    return triangles;
+}
+
 /**
  * \brief For every mesh in this model, we create a physics object that
  * represents the mesh
  */
-void Physics::load_model_into_physics_world(const std::vector<draw_info::IndexedVertexPositions> &ivps) {
+void Physics::load_model_into_physics_world(const std::vector<draw_info::IndexedVertexPositions> &ivps,
+                                            const JPH::ObjectLayer &layer) {
 
     JPH::BodyInterface &body_interface = physics_system.GetBodyInterface();
 
@@ -88,27 +115,7 @@ void Physics::load_model_into_physics_world(const std::vector<draw_info::Indexed
 
         draw_info::IndexedVertexPositions ivp = ivps[i];
 
-        JPH::TriangleList triangles;
-
-        /*assert(mesh.indices.size() % 3 == 0); // only contains triangles*/
-        for (int j = 0; j < ivp.indices.size(); j += 3) {
-            unsigned int j1 = ivp.indices[j];
-            unsigned int j2 = ivp.indices[j + 1];
-            unsigned int j3 = ivp.indices[j + 2];
-
-            glm::vec3 temp_v1 = ivp.xyz_positions[j1];
-            JPH::Float3 v1 = JPH::Float3(temp_v1.x, temp_v1.y, temp_v1.z);
-
-            glm::vec3 temp_v2 = ivp.xyz_positions[j2];
-            JPH::Float3 v2 = JPH::Float3(temp_v2.x, temp_v2.y, temp_v2.z);
-
-            glm::vec3 temp_v3 = ivp.xyz_positions[j3];
-            JPH::Float3 v3 = JPH::Float3(temp_v3.x, temp_v3.y, temp_v3.z);
-
-            JPH::Triangle tri = JPH::Triangle(v1, v2, v3);
-
-            triangles.push_back(tri);
-        }
+        JPH::TriangleList triangles = ivp_to_triangle_list(ivp);
 
         JPH::MeshShapeSettings settings = JPH::MeshShapeSettings(triangles);
 
@@ -123,7 +130,7 @@ void Physics::load_model_into_physics_world(const std::vector<draw_info::Indexed
         }
 
         JPH::BodyCreationSettings mesh_settings(mesh_shape, JPH::RVec3(0.0, 0.0, 0.0), JPH::Quat::sIdentity(),
-                                                JPH::EMotionType::Static, Layers::NON_MOVING);
+                                                JPH::EMotionType::Static, layer);
         JPH::Body *mesh_body = body_interface.CreateBody(mesh_settings); // Note that if we run out of bodies this can
                                                                          // return nullptr
         body_interface.AddBody(mesh_body->GetID(), JPH::EActivation::DontActivate);

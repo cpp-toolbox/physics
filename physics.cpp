@@ -102,6 +102,36 @@ JPH::TriangleList ivp_to_triangle_list(const draw_info::IndexedVertexPositions &
     return triangles;
 }
 
+void Physics::add_shape_via_convex_hull(const std::vector<glm::vec3> &vertices) {
+
+    JPH::BodyInterface &body_interface = physics_system.GetBodyInterface();
+
+    JPH::Array<JPH::Vec3> j_verts;
+    j_verts.reserve(vertices.size());
+    for (const auto &v : vertices) {
+        j_verts.emplace_back(v.x, v.y, v.z);
+    }
+
+    JPH::ConvexHullShapeSettings low_poly_ball_settings(j_verts, JPH::cDefaultConvexRadius);
+    JPH::ShapeSettings::ShapeResult ball_shape_result = low_poly_ball_settings.Create();
+
+    if (!ball_shape_result.IsValid()) {
+        throw std::runtime_error("ball shape is invalid");
+    }
+
+    JPH::ShapeRefC ball_shape = ball_shape_result.Get(); // We don't expect an error here, but you can check
+                                                         // floor_shape_result for HasError() / GetError()
+
+    JPH::BodyCreationSettings ball_creation_settings(ball_shape, JPH::RVec3(5.0, 20.0, 5.0), JPH::Quat::sIdentity(),
+                                                     JPH::EMotionType::Dynamic, Layers::MOVING);
+    JPH::Body *ball =
+        body_interface.CreateBody(ball_creation_settings); // Note that if we run out of bodies this can return nullptr
+
+    body_interface.AddBody(ball->GetID(), JPH::EActivation::Activate);
+    created_body_ids.push_back(ball->GetID());
+    body_interface.SetLinearVelocity(ball->GetID(), JPH::Vec3(0.0f, -5.0f, 0.0f));
+}
+
 /**
  * \brief For every mesh in this model, we create a physics object that
  * represents the mesh

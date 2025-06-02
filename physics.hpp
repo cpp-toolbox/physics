@@ -38,6 +38,8 @@ class Physics {
     void refresh_contacts(JPH::Ref<JPH::CharacterVirtual>);
     // JPH::Ref<JPH::CharacterVirtual> character;
 
+    void add_shape_via_convex_hull(const std::vector<glm::vec3> &vertices);
+
     void load_model_into_physics_world(const std::vector<draw_info::IndexedVertexPositions> &ivps,
                                        const JPH::ObjectLayer &layer = Layers::NON_MOVING);
 

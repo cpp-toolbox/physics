@@ -10,6 +10,7 @@
 #include "Jolt/Physics/Collision/Shape/ConvexHullShape.h"
 #include "Jolt/Physics/Collision/Shape/MeshShape.h"
 #include "Jolt/Physics/StateRecorder.h"
+#include <Jolt/Physics/Collision/CollisionGroup.h>
 #include <stdexcept>
 
 //// Disable common warnings triggered by Jolt, you can use
@@ -178,6 +179,7 @@ JPH::Ref<JPH::CharacterVirtual> Physics::create_character(uint64_t client_id, JP
     const float character_half_height = 0.5f * this->character_height_standing;
 
     settings->mShape = new JPH::CylinderShape(character_half_height, this->character_radius);
+    settings->mInnerBodyShape = new JPH::CylinderShape(character_half_height, this->character_radius - 0.01);
     // settings->mInnerBodyShape = new JPH::CapsuleShape(character_half_height, this->character_radius);
 
     // n = (0, 1, 0) so if we use that as the normal, then (x, y, z) * n = y, thus the equation is of the form
@@ -234,7 +236,8 @@ void Physics::update_specific_character_by_id(float delta_time, uint64_t id) {
     update_specific_character(delta_time, character);
 }
 
-void Physics::update_specific_character(float delta_time, JPH::Ref<JPH::CharacterVirtual> character) {
+void Physics::update_specific_character(float delta_time, JPH::Ref<JPH::CharacterVirtual> character,
+                                        const JPH::BodyFilter &body_filter) {
 
     JPH::CharacterVirtual::ExtendedUpdateSettings update_settings;
     // update_settings.mStickToFloorStepDown = character->GetUp() *
@@ -245,7 +248,7 @@ void Physics::update_specific_character(float delta_time, JPH::Ref<JPH::Characte
     // TODO: think if gravity needs to be applied because we're already applyign it?
     character->ExtendedUpdate(delta_time, -character->GetUp() * physics_system.GetGravity().Length(), update_settings,
                               physics_system.GetDefaultBroadPhaseLayerFilter(Layers::MOVING),
-                              physics_system.GetDefaultLayerFilter(Layers::MOVING), {}, {}, *temp_allocator);
+                              physics_system.GetDefaultLayerFilter(Layers::MOVING), body_filter, {}, *temp_allocator);
 }
 
 void Physics::clean_up_world() {

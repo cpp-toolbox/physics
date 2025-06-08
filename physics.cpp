@@ -180,6 +180,7 @@ JPH::Ref<JPH::CharacterVirtual> Physics::create_character(uint64_t client_id, JP
 
     settings->mShape = new JPH::CylinderShape(character_half_height, this->character_radius);
     settings->mInnerBodyShape = new JPH::CylinderShape(character_half_height, this->character_radius - 0.01);
+    // settings->mMaxSlopeAngle
     // settings->mInnerBodyShape = new JPH::CapsuleShape(character_half_height, this->character_radius);
 
     // n = (0, 1, 0) so if we use that as the normal, then (x, y, z) * n = y, thus the equation is of the form
@@ -190,8 +191,8 @@ JPH::Ref<JPH::CharacterVirtual> Physics::create_character(uint64_t client_id, JP
     // since we're doing a cylinder we do it this way, we only allow contacts if they are on the very bottom of the
     // cylinder.
     settings->mSupportingVolume = JPH::Plane(JPH::Vec3::sAxisY(),
-                                             character_half_height - 0.01); // Accept contacts that touch the
-                                                                            // lower part of the cylinder
+                                             character_half_height - 0.1); // Accept contacts that touch the
+                                                                           // lower part of the cylinder
 
     JPH::Ref<JPH::CharacterVirtual> character =
         new JPH::CharacterVirtual(settings, initial_position, JPH::Quat::sIdentity(), &physics_system);

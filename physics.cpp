@@ -204,6 +204,8 @@ JPH::Ref<JPH::CharacterVirtual> Physics::create_character(uint64_t client_id, JP
 
 void Physics::delete_character(uint64_t client_id) { client_id_to_physics_character.erase(client_id); }
 
+void Physics::set_gravity(float acceleration) { physics_system.SetGravity(JPH::Vec3(0, -acceleration, 0)); }
+
 /**
  * \brief updates the objects part of this physics simulation
  */

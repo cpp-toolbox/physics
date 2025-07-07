@@ -48,6 +48,8 @@ class Physics {
                                                      JPH::Vec3 initial_position = JPH::Vec3(0, 0, 0));
     void delete_character(uint64_t client_id);
 
+    void set_gravity(float acceleration);
+
     std::vector<JPH::BodyID> created_body_ids;
 
     // character creation data [[

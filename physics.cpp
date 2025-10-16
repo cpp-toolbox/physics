@@ -9,6 +9,9 @@
 #include "Jolt/Physics/Collision/Shape/CylinderShape.h"
 #include "Jolt/Physics/Collision/Shape/ConvexHullShape.h"
 #include "Jolt/Physics/Collision/Shape/MeshShape.h"
+#include <Jolt/Physics/Collision/CastResult.h>
+#include <Jolt/Physics/Collision/RayCast.h>
+#include <Jolt/Physics/Collision/Shape/Shape.h>
 #include "Jolt/Physics/StateRecorder.h"
 #include <Jolt/Physics/Collision/CollisionGroup.h>
 #include <stdexcept>
@@ -203,6 +206,27 @@ JPH::Ref<JPH::CharacterVirtual> Physics::create_character(uint64_t client_id, JP
 }
 
 void Physics::delete_character(uint64_t client_id) { client_id_to_physics_character.erase(client_id); }
+
+bool Physics::check_if_ray_hits_character(JPH::Vec3 ray, JPH::Ref<JPH::CharacterVirtual> character) {
+    bool had_hit = false;
+    JPH::RayCastResult rcr;
+    JPH::RayCast aim_ray;
+    aim_ray.mOrigin = JPH::Vec3(0, 0, 0);
+    aim_ray.mDirection = ray;
+    aim_ray.mOrigin -= character->GetPosition();
+    had_hit = character->GetShape()->CastRay(aim_ray, JPH::SubShapeIDCreator(), rcr);
+    return had_hit;
+}
+
+std::optional<unsigned int> Physics::check_if_ray_hits_any_character(
+    JPH::Vec3 ray, std::unordered_map<unsigned int, JPH::Ref<JPH::CharacterVirtual>> id_to_character) {
+    for (auto &[id, character] : id_to_character) {
+        if (check_if_ray_hits_character(ray, character))
+            return id;
+    }
+
+    return std::nullopt;
+}
 
 void Physics::set_gravity(float acceleration) { physics_system.SetGravity(JPH::Vec3(0, -acceleration, 0)); }
 

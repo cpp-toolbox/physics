@@ -1,17 +1,9 @@
 #ifndef PHYSICS_HPP
 #define PHYSICS_HPP
 
-/*#ifndef JPH_DEBUG_RENDERER*/
-/*#define JPH_DEBUG_RENDERER*/
-/*#endif*/
-
 #include "jolt_implementation.hpp"
-/*#include "../../graphics/graphics.hpp"*/
 #include "Jolt/Physics/Character/CharacterVirtual.h"
 #include "Jolt/Physics/StateRecorderImpl.h"
-/*#include "../../networked_input_snapshot/networked_input_snapshot.hpp"*/
-/*#include "../../expiring_data_container/expiring_data_container.hpp"*/
-/*#include "../../ring_buffer/ring_buffer.hpp"*/
 #include "sbpt_generated_includes.hpp"
 #include <chrono>
 
@@ -26,8 +18,6 @@ class Physics {
 
     JPH::PhysicsSystem physics_system;
 
-    // RingBuffer<PhysicsFrame> physics_frames;
-
     void update_characters_only(float delta_time);
     void update_specific_character_by_id(float delta_time, uint64_t id);
     void update_specific_character(float delta_time, JPH::Ref<JPH::CharacterVirtual> character,
@@ -37,7 +27,6 @@ class Physics {
     JPH::BodyID sphere_id; // should be removed in a real program
     std::unordered_map<uint64_t, JPH::Ref<JPH::CharacterVirtual>> client_id_to_physics_character;
     void refresh_contacts(JPH::Ref<JPH::CharacterVirtual>);
-    // JPH::Ref<JPH::CharacterVirtual> character;
 
     void add_shape_via_convex_hull(const std::vector<glm::vec3> &vertices);
 
@@ -47,6 +36,18 @@ class Physics {
     JPH::Ref<JPH::CharacterVirtual> create_character(uint64_t client_id,
                                                      JPH::Vec3 initial_position = JPH::Vec3(0, 0, 0));
     void delete_character(uint64_t client_id);
+
+    /**
+     * @brief checks if the given ray hits the character
+     *
+     * @note that ray is not a direction vector, its length matters, if you're aiming at something it's possible to not
+     * hit it because the ray wasn't long enough.
+     */
+    bool check_if_ray_hits_character(JPH::Vec3 ray, JPH::Ref<JPH::CharacterVirtual> character);
+
+    std::optional<unsigned int>
+    check_if_ray_hits_any_character(JPH::Vec3 ray,
+                                    std::unordered_map<unsigned int, JPH::Ref<JPH::CharacterVirtual>> id_to_character);
 
     void set_gravity(float acceleration);
 

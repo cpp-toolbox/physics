@@ -43,11 +43,25 @@ class Physics {
      * @note that ray is not a direction vector, its length matters, if you're aiming at something it's possible to not
      * hit it because the ray wasn't long enough.
      */
-    bool check_if_ray_hits_character(JPH::Vec3 ray, JPH::Ref<JPH::CharacterVirtual> character);
+    bool check_if_ray_hits_target(JPH::Vec3 ray, JPH::Ref<JPH::CharacterVirtual> source,
+                                  JPH::Ref<JPH::CharacterVirtual> target);
 
     std::optional<unsigned int>
-    check_if_ray_hits_any_character(JPH::Vec3 ray,
-                                    std::unordered_map<unsigned int, JPH::Ref<JPH::CharacterVirtual>> id_to_character);
+    check_if_ray_hits_any_target(JPH::Vec3 ray, JPH::Ref<JPH::CharacterVirtual> source,
+                                 std::unordered_map<unsigned int, JPH::Ref<JPH::CharacterVirtual>> id_to_target);
+
+    using IdToPhysicsState = std::unordered_map<unsigned int, JPH::StateRecorderImpl>;
+
+    IdToPhysicsState get_current_physics_state_for_characters(
+        std::unordered_map<unsigned int, JPH::Ref<JPH::CharacterVirtual>> id_to_character);
+
+    /**
+     * @brief restores the physics state for a mapping of id to character
+     * @pre assumes that the id set for id_to_physics_state is the same for the one for id_to_character
+     */
+    void restore_physics_state_for_characters(
+        IdToPhysicsState &id_to_physics_state,
+        std::unordered_map<unsigned int, JPH::Ref<JPH::CharacterVirtual>> &id_to_character);
 
     void set_gravity(float acceleration);
 

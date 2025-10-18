@@ -207,25 +207,68 @@ JPH::Ref<JPH::CharacterVirtual> Physics::create_character(uint64_t client_id, JP
 
 void Physics::delete_character(uint64_t client_id) { client_id_to_physics_character.erase(client_id); }
 
-bool Physics::check_if_ray_hits_character(JPH::Vec3 ray, JPH::Ref<JPH::CharacterVirtual> character) {
-    bool had_hit = false;
+bool check_if_ray_hits_target(JPH::Vec3 ray, JPH::Ref<JPH::CharacterVirtual> source,
+                              JPH::Ref<JPH::CharacterVirtual> target) {
+    LogSection _(global_logger, "check_if_ray_hits_character");
+
     JPH::RayCastResult rcr;
     JPH::RayCast aim_ray;
-    aim_ray.mOrigin = JPH::Vec3(0, 0, 0);
+
+    aim_ray.mOrigin = source->GetPosition();
     aim_ray.mDirection = ray;
-    aim_ray.mOrigin -= character->GetPosition();
-    had_hit = character->GetShape()->CastRay(aim_ray, JPH::SubShapeIDCreator(), rcr);
+
+    // TODO: need to figure out why we have to do this
+    aim_ray.mOrigin -= target->GetPosition();
+
+    const JPH::Vec3 source_pos = source->GetPosition();
+
+    global_logger.debug("source position : ({:.3f}, {:.3f}, {:.3f})", source_pos.GetX(), source_pos.GetY(),
+                        source_pos.GetZ());
+    // global_logger.debug("Ray origin (local) : ({:.3f}, {:.3f}, {:.3f})", aim_ray.mOrigin.GetX(),
+    // aim_ray.mOrigin.GetY(),
+    //                     aim_ray.mOrigin.GetZ());
+    global_logger.debug("Ray direction      : ({:.3f}, {:.3f}, {:.3f})", ray.GetX(), ray.GetY(), ray.GetZ());
+
+    bool had_hit = target->GetShape()->CastRay(aim_ray, JPH::SubShapeIDCreator(), rcr);
+
+    if (had_hit) {
+        global_logger.info("Ray from source hit character at fraction {:.3f}", rcr.mFraction);
+        global_logger.debug("Hit sub-shape ID  : {}", rcr.mSubShapeID2.GetValue());
+    } else {
+        global_logger.info("Ray missed character");
+    }
+
     return had_hit;
 }
 
-std::optional<unsigned int> Physics::check_if_ray_hits_any_character(
-    JPH::Vec3 ray, std::unordered_map<unsigned int, JPH::Ref<JPH::CharacterVirtual>> id_to_character) {
-    for (auto &[id, character] : id_to_character) {
-        if (check_if_ray_hits_character(ray, character))
+std::optional<unsigned int>
+Physics::check_if_ray_hits_any_target(JPH::Vec3 ray, JPH::Ref<JPH::CharacterVirtual> source,
+                                      std::unordered_map<unsigned int, JPH::Ref<JPH::CharacterVirtual>> id_to_target) {
+    for (auto &[id, target] : id_to_target) {
+        if (check_if_ray_hits_target(ray, source, target))
             return id;
     }
 
     return std::nullopt;
+}
+
+Physics::IdToPhysicsState Physics::get_current_physics_state_for_characters(
+    std::unordered_map<unsigned int, JPH::Ref<JPH::CharacterVirtual>> id_to_character) {
+    return collection_utils::map_values(id_to_character, [](JPH::Ref<JPH::CharacterVirtual> character) {
+        JPH::StateRecorderImpl physics_state;
+        character->SaveState(physics_state);
+        return physics_state;
+    });
+}
+
+void Physics::restore_physics_state_for_characters(
+    Physics::IdToPhysicsState &id_to_physics_state,
+    std::unordered_map<unsigned int, JPH::Ref<JPH::CharacterVirtual>> &id_to_character) {
+
+    for (auto &[id, character] : id_to_character) {
+        auto &physics_state = id_to_physics_state.at(id);
+        character->RestoreState(physics_state);
+    }
 }
 
 void Physics::set_gravity(float acceleration) { physics_system.SetGravity(JPH::Vec3(0, -acceleration, 0)); }

@@ -207,8 +207,8 @@ JPH::Ref<JPH::CharacterVirtual> Physics::create_character(uint64_t client_id, JP
 
 void Physics::delete_character(uint64_t client_id) { client_id_to_physics_character.erase(client_id); }
 
-bool check_if_ray_hits_target(JPH::Vec3 ray, JPH::Ref<JPH::CharacterVirtual> source,
-                              JPH::Ref<JPH::CharacterVirtual> target) {
+bool Physics::check_if_ray_hits_target(JPH::Vec3 ray, JPH::Ref<JPH::CharacterVirtual> source,
+                                       JPH::Ref<JPH::CharacterVirtual> target) {
     LogSection _(global_logger, "check_if_ray_hits_character");
 
     JPH::RayCastResult rcr;

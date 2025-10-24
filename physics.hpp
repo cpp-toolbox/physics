@@ -84,6 +84,7 @@ class Physics {
 
     // NOTE: this could be slightly smaller like 0.35 and it would be fine
     const float character_diameter = 0.425f;
+    const float character_radius = character_diameter / 2;
 
     const float distance_from_eyes_to_top_of_head = 0.1;
     const float eyes_height_from_center = character_height_standing / 2.0f - distance_from_eyes_to_top_of_head;

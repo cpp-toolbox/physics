@@ -6,6 +6,7 @@
 #include "Jolt/Physics/StateRecorderImpl.h"
 #include "sbpt_generated_includes.hpp"
 #include <chrono>
+#include <iterator>
 
 struct PhysicsFrame {
     JPH::StateRecorderImpl &physics_state;
@@ -67,33 +68,23 @@ class Physics {
 
     std::vector<JPH::BodyID> created_body_ids;
 
-    // character creation data [[
+    // startfold character creation data
+
     static constexpr float inner_shape_fraction = 0.9f;
-    // based on actual average human height in meters
+    // all of these values where computed from human averages or based on images
+    // I found of humans whose dimensions looked average
+    //
     // note that half of this is 0.875
     const float character_height_standing = 1.75f;
-
     const float character_height_crouching = 1.f;
 
-    // Male: ~0.45 m,  Female: ~0.40 m , average diameter ≈ 0.425 m
-    const float character_radius = 0.425f;
+    // NOTE: this could be slightly smaller like 0.35 and it would be fine
+    const float character_diameter = 0.425f;
 
-    // eye position derivation:
-    // we approximate the human body with a vertical cylinder:
-    // - total height of the cylinder: 1.75 meters
-    // - origin is at the center of the cylinder
-    //   → half-height = 1.75 / 2 = 0.875 meters
-    //
-    // average eye level in adults is approximately 1.10 meters from the bottom of the body.
-    // to compute the eye position relative to the center-origin:
-    //
-    //     eye_y = -half_height + eye_height_from_base
-    //           = -0.875 + 1.10
-    //           = +0.225 meters
+    const float distance_from_eyes_to_top_of_head = 0.1;
+    const float eyes_height_from_center = character_height_standing / 2.0f - distance_from_eyes_to_top_of_head;
 
-    const float eyes_height_from_center = 0.5;
-
-    // character creation data ]]
+    // endfold
 
   private:
     void initialize_engine();

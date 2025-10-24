@@ -87,6 +87,7 @@ class Physics {
 
     const float distance_from_eyes_to_top_of_head = 0.1;
     const float eyes_height_from_center = character_height_standing / 2.0f - distance_from_eyes_to_top_of_head;
+    const JPH::Vec3 eyes_offset_from_center = JPH::Vec3(0, eyes_height_from_center, 0);
 
     // endfold
 

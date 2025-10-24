@@ -208,19 +208,19 @@ JPH::Ref<JPH::CharacterVirtual> Physics::create_character(uint64_t client_id, JP
 void Physics::delete_character(uint64_t client_id) { client_id_to_physics_character.erase(client_id); }
 
 bool Physics::check_if_ray_hits_target(JPH::Vec3 ray, JPH::Ref<JPH::CharacterVirtual> source,
-                                       JPH::Ref<JPH::CharacterVirtual> target) {
+                                       JPH::Ref<JPH::CharacterVirtual> target, JPH::Vec3 source_offset) {
     LogSection _(global_logger, "check_if_ray_hits_character");
 
     JPH::RayCastResult rcr;
     JPH::RayCast aim_ray;
 
-    aim_ray.mOrigin = source->GetPosition();
+    const JPH::Vec3 source_pos = source->GetPosition() + source_offset;
+
+    aim_ray.mOrigin = source_pos;
     aim_ray.mDirection = ray;
 
     // TODO: need to figure out why we have to do this
     aim_ray.mOrigin -= target->GetPosition();
-
-    const JPH::Vec3 source_pos = source->GetPosition();
 
     global_logger.debug("source position : ({:.3f}, {:.3f}, {:.3f})", source_pos.GetX(), source_pos.GetY(),
                         source_pos.GetZ());
@@ -243,9 +243,10 @@ bool Physics::check_if_ray_hits_target(JPH::Vec3 ray, JPH::Ref<JPH::CharacterVir
 
 std::optional<unsigned int>
 Physics::check_if_ray_hits_any_target(JPH::Vec3 ray, JPH::Ref<JPH::CharacterVirtual> source,
-                                      std::unordered_map<unsigned int, JPH::Ref<JPH::CharacterVirtual>> id_to_target) {
+                                      std::unordered_map<unsigned int, JPH::Ref<JPH::CharacterVirtual>> id_to_target,
+                                      JPH::Vec3 source_offset) {
     for (auto &[id, target] : id_to_target) {
-        if (check_if_ray_hits_target(ray, source, target))
+        if (check_if_ray_hits_target(ray, source, target, source_offset))
             return id;
     }
 

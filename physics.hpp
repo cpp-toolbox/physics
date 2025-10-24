@@ -40,15 +40,19 @@ class Physics {
     /**
      * @brief checks if the given ray hits the character
      *
-     * @note that ray is not a direction vector, its length matters, if you're aiming at something it's possible to not
+     * @param source_offset is a vector used to change the start position of the fired ray, this is useful if the place
+     * where the ray should start is given by a constant offset from the characters origin.
+     *
+     * @warn \p ray is not a direction vector, its length matters, if you're aiming at something it's possible to not
      * hit it because the ray wasn't long enough.
      */
     bool check_if_ray_hits_target(JPH::Vec3 ray, JPH::Ref<JPH::CharacterVirtual> source,
-                                  JPH::Ref<JPH::CharacterVirtual> target);
+                                  JPH::Ref<JPH::CharacterVirtual> target, JPH::Vec3 source_offset = JPH::Vec3(0, 0, 0));
 
     std::optional<unsigned int>
     check_if_ray_hits_any_target(JPH::Vec3 ray, JPH::Ref<JPH::CharacterVirtual> source,
-                                 std::unordered_map<unsigned int, JPH::Ref<JPH::CharacterVirtual>> id_to_target);
+                                 std::unordered_map<unsigned int, JPH::Ref<JPH::CharacterVirtual>> id_to_target,
+                                 JPH::Vec3 source_offset = JPH::Vec3(0, 0, 0));
 
     using IdToPhysicsState = std::unordered_map<unsigned int, JPH::StateRecorderImpl>;
 

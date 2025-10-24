@@ -82,8 +82,7 @@ class Physics {
     const float character_height_standing = 1.75f;
     const float character_height_crouching = 1.f;
 
-    // NOTE: this could be slightly smaller like 0.35 and it would be fine
-    const float character_diameter = 0.425f;
+    const float character_diameter = 0.65;
     const float character_radius = character_diameter / 2;
 
     const float distance_from_eyes_to_top_of_head = 0.1;

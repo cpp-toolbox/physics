@@ -31,6 +31,7 @@ class Physics {
 
     void add_shape_via_convex_hull(const std::vector<glm::vec3> &vertices);
 
+    JPH::TriangleList ivp_to_triangle_list(const draw_info::IndexedVertexPositions &ivp);
     void load_model_into_physics_world(const std::vector<draw_info::IndexedVertexPositions> &ivps,
                                        const JPH::ObjectLayer &layer = Layers::NON_MOVING);
 

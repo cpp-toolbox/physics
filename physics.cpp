@@ -80,7 +80,7 @@ void Physics::initialize_world_objects() {
     /*body_interface.SetLinearVelocity(ball->GetID(), JPH::Vec3(0.0f, -5.0f, 0.0f));*/
 }
 
-JPH::TriangleList ivp_to_triangle_list(const draw_info::IndexedVertexPositions &ivp) {
+JPH::TriangleList Physics::ivp_to_triangle_list(const draw_info::IndexedVertexPositions &ivp) {
 
     JPH::TriangleList triangles;
 

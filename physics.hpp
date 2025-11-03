@@ -45,6 +45,10 @@ class Physics {
      * @param source_offset is a vector used to change the start position of the fired ray, this is useful if the place
      * where the ray should start is given by a constant offset from the characters origin.
      *
+     * @bug this doesn't account for any blocking geometry, we need to account for this, we need a collection of
+     * hittable things, and then we can determine what the ray hit, right now this is pretty sketchy and doesn't work
+     * properly at all
+     *
      * @warn \p ray is not a direction vector, its length matters, if you're aiming at something it's possible to not
      * hit it because the ray wasn't long enough.
      */
@@ -78,7 +82,7 @@ class Physics {
     static constexpr float inner_shape_fraction = 0.9f;
     // all of these values where computed from human averages or based on images
     // I found of humans whose dimensions looked average
-    //
+
     // note that half of this is 0.875
     const float character_height_standing = 1.75f;
     const float character_height_crouching = 1.f;

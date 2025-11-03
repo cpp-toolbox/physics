@@ -173,7 +173,11 @@ void Physics::load_model_into_physics_world(const std::vector<draw_info::Indexed
 }
 
 /**
- * \brief create character controller for a user
+ * @brief create character controller for a user to be simulated in the physics world
+ *
+ * @note the client id of the character is stored in the characters user data, the point of this is that sometimes
+ * during collision callbacks you'll be given a character virtual without any metadata, and you need a way to map it
+ * back to the data or structs that are associated with that character virtual
  */
 JPH::Ref<JPH::CharacterVirtual> Physics::create_character(uint64_t client_id, JPH::Vec3 initial_position) {
 
@@ -199,6 +203,8 @@ JPH::Ref<JPH::CharacterVirtual> Physics::create_character(uint64_t client_id, JP
 
     JPH::Ref<JPH::CharacterVirtual> character =
         new JPH::CharacterVirtual(settings, initial_position, JPH::Quat::sIdentity(), &physics_system);
+
+    character->SetUserData(client_id);
 
     client_id_to_physics_character[client_id] = character;
 

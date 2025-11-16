@@ -4,6 +4,8 @@
 #include "jolt_implementation.hpp"
 #include "Jolt/Physics/Character/CharacterVirtual.h"
 #include "Jolt/Physics/StateRecorderImpl.h"
+#include <Jolt/Physics/Collision/RayCast.h>
+#include <Jolt/Physics/Collision/CastResult.h>
 #include "sbpt_generated_includes.hpp"
 #include <chrono>
 #include <iterator>
@@ -39,26 +41,61 @@ class Physics {
                                                      JPH::Vec3 initial_position = JPH::Vec3(0, 0, 0));
     void delete_character(uint64_t client_id);
 
-    /**
-     * @brief checks if the given ray hits the character
-     *
-     * @param source_offset is a vector used to change the start position of the fired ray, this is useful if the place
-     * where the ray should start is given by a constant offset from the characters origin.
-     *
-     * @bug this doesn't account for any blocking geometry, we need to account for this, we need a collection of
-     * hittable things, and then we can determine what the ray hit, right now this is pretty sketchy and doesn't work
-     * properly at all
-     *
-     * @warn \p ray is not a direction vector, its length matters, if you're aiming at something it's possible to not
-     * hit it because the ray wasn't long enough.
-     */
-    bool check_if_ray_hits_target(JPH::Vec3 ray, JPH::Ref<JPH::CharacterVirtual> source,
-                                  JPH::Ref<JPH::CharacterVirtual> target, JPH::Vec3 source_offset = JPH::Vec3(0, 0, 0));
+    // If nothing was hit, all optionals remain std::nullopt.
+    struct HitscanResult {
+        // fraction along the ray (0–1) where a hit occurred.
+        // if empty → no hit.
+        std::optional<float> hit_fraction;
 
-    std::optional<unsigned int>
-    check_if_ray_hits_any_target(JPH::Vec3 ray, JPH::Ref<JPH::CharacterVirtual> source,
-                                 std::unordered_map<unsigned int, JPH::Ref<JPH::CharacterVirtual>> id_to_target,
-                                 JPH::Vec3 source_offset = JPH::Vec3(0, 0, 0));
+        // If a character was hit, this contains the client ID.
+        std::optional<unsigned int> hit_character_id;
+
+        // if a world object was hit, this contains the body id.
+        std::optional<JPH::BodyID> hit_world_body_id;
+
+        // underlying raycastresult (present only if something was hit)
+        std::optional<JPH::RayCastResult> rcr;
+
+        bool hit_something() const { return hit_fraction.has_value(); }
+        bool hit_character() const { return hit_character_id.has_value(); }
+        bool hit_world_object() const { return hit_world_body_id.has_value(); }
+    };
+
+    struct CharacterHitscanContext {
+        std::reference_wrapper<JPH::Ref<JPH::CharacterVirtual>> physics_character;
+    };
+
+    /**
+     * @brief Fires a hitscan weapon along a given ray and determines the closest hit.
+     *
+     * This function performs a hitscan operation by casting a ray (`aim_ray`) against
+     * all potential targets: other characters (excluding the source) and world objects.
+     * It returns the closest hit, if any, including information about whether a character
+     * or a world object was hit.
+     *
+     * @param aim_ray The ray representing the weapon's trajectory.
+     * @param client_id_to_character_hitscan_context Map from client IDs to their respective
+     *        `CharacterHitscanContext` which contains character physics data.
+     * @param client_id_of_source The client ID of the entity firing the weapon; this
+     *        entity will be ignored in the character hitscan check.
+     * @param hittable_world_objects Vector of world object `BodyID`s that the ray can hit.
+     *
+     * @return HitscanResult Structure containing information about the closest hit:
+     *         - `hit_fraction`: Fraction along the ray where the hit occurred.
+     *         - `hit_character_id`: Optional ID of the hit character, if any.
+     *         - `hit_world_body_id`: Optional ID of the hit world object, if any.
+     *         - `rcr`: Raw `RayCastResult` with detailed hit information.
+     *
+     * @note If multiple hits occur along the ray, only the closest hit (smallest fraction)
+     *       is considered. Hits on the firing character are ignored.
+     *
+     * @warning This function assumes that `physics_system` is valid and accessible
+     *          for world object raycasts.
+     */
+    HitscanResult fire_hitscan_weapon(
+        const JPH::RayCast &aim_ray,
+        std::unordered_map<unsigned int, CharacterHitscanContext> &client_id_to_character_hitscan_context,
+        unsigned int client_id_of_source, const std::vector<JPH::BodyID> &hittable_world_objects);
 
     using IdToPhysicsState = std::unordered_map<unsigned int, JPH::StateRecorderImpl>;
 

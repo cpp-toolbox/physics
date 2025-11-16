@@ -207,50 +207,64 @@ JPH::Ref<JPH::CharacterVirtual> Physics::create_character(uint64_t client_id, JP
 
 void Physics::delete_character(uint64_t client_id) { client_id_to_physics_character.erase(client_id); }
 
-bool Physics::check_if_ray_hits_target(JPH::Vec3 ray, JPH::Ref<JPH::CharacterVirtual> source,
-                                       JPH::Ref<JPH::CharacterVirtual> target, JPH::Vec3 source_offset) {
-    LogSection _(global_logger, "check_if_ray_hits_character");
+Physics::HitscanResult Physics::fire_hitscan_weapon(
+    const JPH::RayCast &aim_ray,
+    std::unordered_map<unsigned int, CharacterHitscanContext> &client_id_to_character_hitscan_context,
+    unsigned int client_id_of_source, const std::vector<JPH::BodyID> &hittable_world_objects) {
+    LogSection _(global_logger, "fire_hitscan_weapon");
 
-    JPH::RayCastResult rcr;
-    JPH::RayCast aim_ray;
+    HitscanResult best;
 
-    const JPH::Vec3 source_pos = source->GetPosition() + source_offset;
+    auto try_update_best = [&](float fraction, const std::optional<unsigned int> &char_id,
+                               const std::optional<JPH::BodyID> &world_body, const JPH::RayCastResult &rcr) {
+        if (!best.hit_fraction || fraction < *best.hit_fraction) {
+            best.hit_fraction = fraction;
+            best.hit_character_id = char_id;
+            best.hit_world_body_id = world_body;
+            best.rcr = rcr;
+        }
+    };
 
-    aim_ray.mOrigin = source_pos;
-    aim_ray.mDirection = ray;
+    // hitscan against other character (except self)
+    for (auto &[client_id, target] : client_id_to_character_hitscan_context) {
+        if (client_id == client_id_of_source)
+            continue;
 
-    // TODO: need to figure out why we have to do this
-    aim_ray.mOrigin -= target->GetPosition();
+        JPH::RayCast rc = aim_ray;
+        rc.mOrigin -= target.physics_character.get()->GetPosition();
 
-    global_logger.debug("source position : ({:.3f}, {:.3f}, {:.3f})", source_pos.GetX(), source_pos.GetY(),
-                        source_pos.GetZ());
-    // global_logger.debug("Ray origin (local) : ({:.3f}, {:.3f}, {:.3f})", aim_ray.mOrigin.GetX(),
-    // aim_ray.mOrigin.GetY(),
-    //                     aim_ray.mOrigin.GetZ());
-    global_logger.debug("Ray direction      : ({:.3f}, {:.3f}, {:.3f})", ray.GetX(), ray.GetY(), ray.GetZ());
+        JPH::RayCastResult rcr;
+        bool hit = target.physics_character.get()->GetShape()->CastRay(rc, JPH::SubShapeIDCreator(), rcr);
 
-    bool had_hit = target->GetShape()->CastRay(aim_ray, JPH::SubShapeIDCreator(), rcr);
-
-    if (had_hit) {
-        global_logger.info("Ray from source hit character at fraction {:.3f}", rcr.mFraction);
-        global_logger.debug("Hit sub-shape ID  : {}", rcr.mSubShapeID2.GetValue());
-    } else {
-        global_logger.info("Ray missed character");
+        if (hit) {
+            try_update_best(rcr.mFraction, client_id, std::nullopt, rcr);
+        }
     }
 
-    return had_hit;
-}
+    // hitscan against world objects
+    for (JPH::BodyID body_id : hittable_world_objects) {
+        const JPH::Body *body = physics_system.GetBodyLockInterface().TryGetBody(body_id);
+        if (!body)
+            continue;
 
-std::optional<unsigned int>
-Physics::check_if_ray_hits_any_target(JPH::Vec3 ray, JPH::Ref<JPH::CharacterVirtual> source,
-                                      std::unordered_map<unsigned int, JPH::Ref<JPH::CharacterVirtual>> id_to_target,
-                                      JPH::Vec3 source_offset) {
-    for (auto &[id, target] : id_to_target) {
-        if (check_if_ray_hits_target(ray, source, target, source_offset))
-            return id;
+        JPH::RayCastResult rcr;
+        bool hit = body->GetShape()->CastRay(aim_ray, JPH::SubShapeIDCreator(), rcr);
+
+        if (hit) {
+            try_update_best(rcr.mFraction, std::nullopt, body_id, rcr);
+        }
     }
 
-    return std::nullopt;
+    if (!best.hit_something()) {
+        global_logger.info("Ray hit nothing at all");
+    } else if (best.hit_character()) {
+        global_logger.info("Hit character id {} at fraction {}", *best.hit_character_id, *best.hit_fraction);
+    } else if (best.hit_world_object()) {
+        global_logger.info("Hit world object body {} at fraction {}", best.hit_world_body_id->GetIndex(),
+                           *best.hit_fraction);
+    }
+
+    return best;
 }
 
 Physics::IdToPhysicsState Physics::get_current_physics_state_for_characters(
